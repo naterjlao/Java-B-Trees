@@ -22,16 +22,20 @@ public class BTree<T extends Comparable<T>> {
     private static final RuntimeException UNIMPLEMENTED_EXCEPTION = new RuntimeException("method not implemented");
 
     /* Private Fields */
-    private final int FANOUT;
+    private final int FANOUT; // the number of children a Node may have
+    private final int HOPS; // the maximum number of nearest children that can be used for overflow resolution
     private int size;
     private Node root;
 
     /**
-     * Default Constructor - initializes the fanout, numKeys and root Node.
-     * @param fanOut the maximum amount of Nodes that a Node can have as children.
+     * Default Constructor - initializes the FANOUT, HOPS, size and root Node.
+     * @param fanOut the maximum amount of Nodes that a Node can have as children
+     * @param hops the maximum number of nearest children that can be used for overflow
+     *             resolution through key rotations
      */
-    public BTree(int fanOut) {
+    public BTree(int fanOut, int hops) {
         FANOUT = fanOut;
+        HOPS = hops;
         size = 0;
         root = new Node();
     }
@@ -59,6 +63,9 @@ public class BTree<T extends Comparable<T>> {
         private List<Node> children;
         private boolean isLeaf;
 
+        /**
+         * Default constructor
+         */
         Node() {
             keys = new LinkedList<>();
             children = new LinkedList<>();
@@ -74,14 +81,24 @@ public class BTree<T extends Comparable<T>> {
          */
         boolean insert(T key) {
             if (isLeaf) {
-                //TODO update the size counter if a new Node is made
+                /* If the Node is a leaf, try to insert the key into keylist if
+                * there is an opening */
                 return keyListInsert(key);
             } else {
-                //TODO update the size counter
-                //TODO handle non-leaf Nodes
+                /* Find the target child key and Node */
+                int targetIndex = keyIndex(key);
+                Node target = children.get(targetIndex);
 
+                /* Attempt to insert the key to the target child Node */
+                if (target.insert(key)) {
+                    return true;
+                }
+                /* If unsuccessful, manage key rotations */
+                else {
+                    //TODO manage key rotation
+                    throw UNIMPLEMENTED_EXCEPTION;
 
-                throw UNIMPLEMENTED_EXCEPTION;
+                }
             }
         }
 
@@ -122,16 +139,6 @@ public class BTree<T extends Comparable<T>> {
             } else
                 return false;
         }
-
-        /**
-         * Finds the associated Node of the given key.
-         *
-         * @param key Object to find the Node with
-         * @return the Node associated with the given key
-         */
-         Node getChild(T key) {
-            return children.get(keyIndex(key));
-         }
 
         /**
          * @return true if the maximum amount of children for the current Node has been
