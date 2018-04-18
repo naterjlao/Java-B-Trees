@@ -74,13 +74,38 @@ public class BTree<T extends Comparable<T>> {
          */
         boolean insert(T key) {
             if (isLeaf) {
-                //TODO update the size counter
-                return insertKeyList(key);
+                //TODO update the size counter if a new Node is made
+                return keyListInsert(key);
             } else {
                 //TODO update the size counter
                 //TODO handle non-leaf Nodes
+
+
                 throw UNIMPLEMENTED_EXCEPTION;
             }
+        }
+
+        /* ******** UTILITY METHODS ***********/
+
+        /**
+         * Finds the key index of the current Node where the key is either equal to
+         * or greater than the given key. This method can be used for key insertion, by
+         * adding the new key into the keys list using the index; or for Node traversal,
+         * the index returned is the same position for the Node that would contain the
+         * input data.
+         *
+         * @param key Input object to be compared to
+         * @return The index of the key value in the keys list that is at least equal to
+         * the given key. Note that if the index = {the size of the key list}, then the key
+         * should be inserted into the end of the list.
+         */
+        private int keyIndex(T key) {
+            int index = 0;
+
+            while (index < keys.size() && key.compareTo(keys.get(index)) < 0)
+                index++;
+
+            return index;
         }
 
         /**
@@ -90,13 +115,23 @@ public class BTree<T extends Comparable<T>> {
          * @param key object of type T to be inserted in the keys list
          * @return true if the insertion was successful, false otherwise
          */
-        boolean insertKeyList(T key) {
+        boolean keyListInsert(T key) {
             if (!maxChildren()) {
-                //TODO Create an insertion method
+                keys.add(keyIndex(key),key);
                 return true;
             } else
                 return false;
         }
+
+        /**
+         * Finds the associated Node of the given key.
+         *
+         * @param key Object to find the Node with
+         * @return the Node associated with the given key
+         */
+         Node getChild(T key) {
+            return children.get(keyIndex(key));
+         }
 
         /**
          * @return true if the maximum amount of children for the current Node has been
